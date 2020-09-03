@@ -1,0 +1,25 @@
+name: 'Integration Test'
+
+on: 
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'   
+
+jobs:
+  build:
+    name: 'Build'
+    strategy:
+      matrix:
+        java: [ '8', '11', '13', '14' ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Set up JDK'
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: 'Print Java Version'
+        run: 'java -version'
