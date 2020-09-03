@@ -3,29 +3,54 @@ name: 'Integration Test'
 on: 
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Log level'     
-        required: true
-        default: 'warning'   
+      branch:
+        description: 'Branch Name'     
+        required: false
+        default: 'master'
+  repository_dispatch:
+    types: [integration-test-command]
 
 jobs:
-  build:
-    name: 'Build'
-    strategy:
-      matrix:
-        java: [ '8', '11', '13', '14' ]
+  integration-test:
+    name: 'Integration Test'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: 'Set up JDK'
-        uses: actions/setup-java@v1
+      - name: 'Extract Repository Dispatch Input'
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        id: repository-dispatch-input
+        run: |
+          echo ::set-output name=branch::${{ github.event.client_payload.pull_request.head.label }}
+          echo ::set-output name=actor::${{ github.event.client_payload.github.payload.comment.user.login }}
+          echo ::set-output name=actorUrl::${{ github.event.client_payload.github.payload.comment.user.html_url }}
+      - name: 'Extract Workflow Dispatch Input'
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: workflow-dispatch-input
+        run: |
+          echo ::set-output name=branch::${{ github.event.inputs.branch }}
+          echo ::set-output name=actor::${{ github.event.sender.login }}
+          echo ::set-output name=actorUrl::${{ github.event.sender.html_url }}
+      - name: 'Extract Input'
+        id: input
+        run: |
+          echo ::set-output name=branch::${{ steps.repository-dispatch-input.outputs.branch }}${{ steps.workflow-dispatch-input.outputs.branch }}
+          echo ::set-output name=actor::${{ steps.repository-dispatch-input.outputs.actor }}${{ steps.workflow-dispatch-input.outputs.actor }}
+          echo ::set-output name=actorUrl::${{ steps.repository-dispatch-input.outputs.actorUrl }}${{ steps.workflow-dispatch-input.outputs.actorUrl }}
+      - name: 'Find Pull Request'
+        id: find-pull-request
+        uses: RoKish/find-pull-request-action@v1.2.0-modified-v1
         with:
-          java-version: ${{ matrix.java }}
-      - name: 'Print Java Version'
-        run: 'java -version'
-      - name: 'Print GitHub Run Number'
-        run: 'echo $GITHUB_RUN_NUMBER'
-      - name: 'Print GitHub Context'
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+          github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          branch: ${{ steps.input.outputs.branch }}
+      - name: 'Post Status Comment'
+        if: ${{ steps.find-pull-request.outputs.number != '' }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          repository: ${{ github.repository }}
+          issue-number: ${{ steps.find-pull-request.outputs.number }}
+          body: |
+            The integration tests have been started.
+
+            **Workflow**:&nbsp;&nbsp;&nbsp;${{ github.workflow }}
+            **Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${{ github.workflow }}#${{github.run_number}}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **User:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${{ steps.input.outputs.actor }}](${{ steps.input.outputs.actorUrl }})
