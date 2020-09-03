@@ -23,3 +23,9 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: 'Print Java Version'
         run: 'java -version'
+      - name: 'Print GitHub Run Number'
+        run: 'echo $GITHUB_RUN_NUMBER'
+      - name: 'Print GitHub Context'
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
