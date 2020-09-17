@@ -35,9 +35,13 @@ jobs:
           echo ::set-output name=branch::${{ steps.repository-dispatch-input.outputs.branch }}${{ steps.workflow-dispatch-input.outputs.branch }}
           echo ::set-output name=actor::${{ steps.repository-dispatch-input.outputs.actor }}${{ steps.workflow-dispatch-input.outputs.actor }}
           echo ::set-output name=actorUrl::${{ steps.repository-dispatch-input.outputs.actorUrl }}${{ steps.workflow-dispatch-input.outputs.actorUrl }}
+      - name: Dump GitHub Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - name: 'Find Pull Request'
         id: find-pull-request
-        uses: RoKish/find-pull-request-action@v1.2.0-modified-v1
+        uses: juliangruber/find-pull-request-action@v1.3.0
         with:
           github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
           branch: ${{ steps.input.outputs.branch }}
@@ -51,6 +55,23 @@ jobs:
           body: |
             The integration tests have been started.
 
-            **Workflow**:&nbsp;&nbsp;&nbsp;${{ github.workflow }}
-            **Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${{ github.workflow }}#${{github.run_number}}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             **User:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${{ steps.input.outputs.actor }}](${{ steps.input.outputs.actorUrl }})
+            **Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[${{ github.workflow }}#${{github.run_number}}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ steps.find-pull-request.outputs.head-sha }}
+      - name: 'Set up JDK 11'
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: 'Run integration tests'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mvn -B clean verify \
+          -Daws.region=${{ secrets.AWS_REGION }} \
+          -Daws.account=${{ secrets.AWS_ACCOUNT }} \
+          -DskipUTs=true \
+          -DskipITs=false
