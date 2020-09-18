@@ -1,0 +1,45 @@
+name: 'Prepare a Release'
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release Version'
+        required: true
+      development_version:
+        description: 'Development Version'
+        required: true
+
+jobs:
+  prepare-release:
+    name: 'Prepare a Release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+      - name: 'Configure Git User'
+        run: |
+          git config --local user.email "linguarobot@linguarobot.io"
+          git config --local user.name "Lingua Robot Automation"
+      - name: 'Set up JDK 11'
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: 'Prepare Release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+        run: |
+          mvn -B release:clean release:prepare \
+          -Dusername=$GITHUB_TOKEN \
+          -DreleaseVersion=${{ github.event.inputs.release_version }} \
+          -DdevelopmentVersion=${{ github.event.inputs.development_version }} \
+          -DpushChanges=true
+#      - name: 'Release'
+#        uses: qcastel/github-actions-maven-release@master
+#        with:
+#          release-branch-name: "master"
+#          git-release-bot-name: "release-bot"
+#          git-release-bot-email: "release-bot@example.com"
+#          access-token: ${{ secrets.REPO_ACCESS_TOKEN }}
