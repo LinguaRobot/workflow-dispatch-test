@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: 'Configure Git User'
         run: |
           git config --local user.email "linguarobot@linguarobot.io"
@@ -36,10 +34,3 @@ jobs:
           -DreleaseVersion=${{ github.event.inputs.release_version }} \
           -DdevelopmentVersion=${{ github.event.inputs.development_version }} \
           -DpushChanges=true
-#      - name: 'Release'
-#        uses: qcastel/github-actions-maven-release@master
-#        with:
-#          release-branch-name: "master"
-#          git-release-bot-name: "release-bot"
-#          git-release-bot-email: "release-bot@example.com"
-#          access-token: ${{ secrets.REPO_ACCESS_TOKEN }}
