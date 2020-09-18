@@ -45,6 +45,6 @@ package io.linguarobot;
 public class App {
 
     public static void main(String[] args) {
-        System.out.println("Sample project");
+        System.out.println("Hello, world!");
     }
 }
