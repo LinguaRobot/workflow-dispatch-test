@@ -6,7 +6,7 @@
     <groupId>io.linguarobot</groupId>
     <artifactId>sample</artifactId>
     <name>Sample Project</name>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <description>Sample Project</description>
 
@@ -26,7 +26,7 @@
         <connection>scm:git:ssh://git@github.com/RoKish/workflow-dispatch-test.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/RoKish/workflow-dispatch-test.git</developerConnection>
         <url>https://github.com/RoKish/workflow-dispatch-test</url>
-        <tag>v1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
