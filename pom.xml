@@ -40,6 +40,7 @@
                     <scmCommentPrefix>chore:</scmCommentPrefix>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                     <arguments>-DskipUTs=true -DskipITs=true</arguments>
+                    <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
         </plugins>
