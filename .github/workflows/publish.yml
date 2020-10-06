@@ -47,4 +47,4 @@ jobs:
         env:
           MAVEN_USERNAME: RoKish
           MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: 'mvn -B -Prelease clean deploy'
+        run: 'mvn -B -DskipITs=true -DskipUTs=true clean deploy'
